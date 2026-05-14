@@ -9,20 +9,44 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UsersRouteImport } from './routes/users'
 import { Route as TransactionsRouteImport } from './routes/transactions'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ReservationsRouteImport } from './routes/reservations'
+import { Route as LoginOldRouteImport } from './routes/login-old'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as AccountsRouteImport } from './routes/accounts'
 import { Route as IndexRouteImport } from './routes/index'
 
+const UsersRoute = UsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TransactionsRoute = TransactionsRouteImport.update({
   id: '/transactions',
   path: '/transactions',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReservationsRoute = ReservationsRouteImport.update({
   id: '/reservations',
   path: '/reservations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginOldRoute = LoginOldRouteImport.update({
+  id: '/login-old',
+  path: '/login-old',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CategoriesRoute = CategoriesRouteImport.update({
@@ -45,23 +69,35 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/accounts': typeof AccountsRoute
   '/categories': typeof CategoriesRoute
+  '/login': typeof LoginRoute
+  '/login-old': typeof LoginOldRoute
   '/reservations': typeof ReservationsRoute
+  '/signup': typeof SignupRoute
   '/transactions': typeof TransactionsRoute
+  '/users': typeof UsersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/accounts': typeof AccountsRoute
   '/categories': typeof CategoriesRoute
+  '/login': typeof LoginRoute
+  '/login-old': typeof LoginOldRoute
   '/reservations': typeof ReservationsRoute
+  '/signup': typeof SignupRoute
   '/transactions': typeof TransactionsRoute
+  '/users': typeof UsersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/accounts': typeof AccountsRoute
   '/categories': typeof CategoriesRoute
+  '/login': typeof LoginRoute
+  '/login-old': typeof LoginOldRoute
   '/reservations': typeof ReservationsRoute
+  '/signup': typeof SignupRoute
   '/transactions': typeof TransactionsRoute
+  '/users': typeof UsersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -69,29 +105,57 @@ export interface FileRouteTypes {
     | '/'
     | '/accounts'
     | '/categories'
+    | '/login'
+    | '/login-old'
     | '/reservations'
+    | '/signup'
     | '/transactions'
+    | '/users'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/accounts' | '/categories' | '/reservations' | '/transactions'
+  to:
+    | '/'
+    | '/accounts'
+    | '/categories'
+    | '/login'
+    | '/login-old'
+    | '/reservations'
+    | '/signup'
+    | '/transactions'
+    | '/users'
   id:
     | '__root__'
     | '/'
     | '/accounts'
     | '/categories'
+    | '/login'
+    | '/login-old'
     | '/reservations'
+    | '/signup'
     | '/transactions'
+    | '/users'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountsRoute: typeof AccountsRoute
   CategoriesRoute: typeof CategoriesRoute
+  LoginRoute: typeof LoginRoute
+  LoginOldRoute: typeof LoginOldRoute
   ReservationsRoute: typeof ReservationsRoute
+  SignupRoute: typeof SignupRoute
   TransactionsRoute: typeof TransactionsRoute
+  UsersRoute: typeof UsersRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/users': {
+      id: '/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof UsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/transactions': {
       id: '/transactions'
       path: '/transactions'
@@ -99,11 +163,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TransactionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reservations': {
       id: '/reservations'
       path: '/reservations'
       fullPath: '/reservations'
       preLoaderRoute: typeof ReservationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login-old': {
+      id: '/login-old'
+      path: '/login-old'
+      fullPath: '/login-old'
+      preLoaderRoute: typeof LoginOldRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/categories': {
@@ -134,8 +219,12 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountsRoute: AccountsRoute,
   CategoriesRoute: CategoriesRoute,
+  LoginRoute: LoginRoute,
+  LoginOldRoute: LoginOldRoute,
   ReservationsRoute: ReservationsRoute,
+  SignupRoute: SignupRoute,
   TransactionsRoute: TransactionsRoute,
+  UsersRoute: UsersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

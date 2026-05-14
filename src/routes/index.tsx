@@ -9,6 +9,8 @@ import {
   Wallet,
   PiggyBank,
 } from "lucide-react";
+import { useEffect } from "react";
+import apiClient from "@/lib/api-client";
 
 export const Route = createFileRoute("/")({
   component: Dashboard,
@@ -42,6 +44,12 @@ function Dashboard() {
 
   const catName = (id: string) => categories.find((c) => c.id === id)?.name ?? "—";
   const accName = (id: string) => accounts.find((a) => a.id === id)?.name ?? "—";
+
+  useEffect(() => {
+    apiClient.get("/api/health").catch((err) => {
+      console.error("API health check failed:", err);
+    });
+  }, []);
 
   return (
     <AppShell>
@@ -184,11 +192,10 @@ function Dashboard() {
               <div key={t.id} className="flex items-center justify-between py-3">
                 <div className="flex items-center gap-3">
                   <div
-                    className={`flex h-9 w-9 items-center justify-center rounded-full ${
-                      t.amount > 0
-                        ? "bg-[oklch(0.65_0.16_155/0.12)] text-success"
-                        : "bg-[oklch(0.6_0.21_25/0.12)] text-destructive"
-                    }`}
+                    className={`flex h-9 w-9 items-center justify-center rounded-full ${t.amount > 0
+                      ? "bg-[oklch(0.65_0.16_155/0.12)] text-success"
+                      : "bg-[oklch(0.6_0.21_25/0.12)] text-destructive"
+                      }`}
                   >
                     {t.amount > 0 ? (
                       <ArrowUpRight className="h-4 w-4" />
@@ -204,9 +211,8 @@ function Dashboard() {
                   </div>
                 </div>
                 <p
-                  className={`font-display text-sm font-semibold tabular-nums ${
-                    t.amount > 0 ? "text-success" : "text-destructive"
-                  }`}
+                  className={`font-display text-sm font-semibold tabular-nums ${t.amount > 0 ? "text-success" : "text-destructive"
+                    }`}
                 >
                   {formatBRL(t.amount)}
                 </p>

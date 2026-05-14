@@ -2,9 +2,9 @@
 // Mirrors the Prisma schema (Account, Category, Transaction, Reservation).
 
 import { createContext, useContext, useState, type ReactNode } from "react";
+import type { Frequency } from "@/enums/frequency.ts";
 
 export type CategoryType = "income" | "expense";
-export type Frequency = "daily" | "weekly" | "monthly" | "yearly" | null;
 
 export interface Account {
   id: string;

@@ -46,7 +46,7 @@ function Dashboard() {
   const accName = (id: string) => accounts.find((a) => a.id === id)?.name ?? "—";
 
   useEffect(() => {
-    apiClient.get("/api/health").catch((err) => {
+    apiClient.get("/health").catch((err) => {
       console.error("API health check failed:", err);
     });
   }, []);

@@ -1,16 +1,17 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import React, { useEffect } from "react";
 import {
   Outlet,
   Link,
   createRootRouteWithContext,
   useRouter,
+  useNavigate,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
 import { FinanceProvider } from "@/lib/finance-store";
-import { AuthProvider } from "@/lib/auth-store";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -113,15 +114,26 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const onLogout = () => navigate({ to: "/login" });
+    if (typeof window !== "undefined") {
+      window.addEventListener("auth:logout", onLogout);
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("auth:logout", onLogout);
+      }
+    };
+  }, [navigate]);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <FinanceProvider>
-          <Outlet />
-          <Toaster />
-        </FinanceProvider>
-      </AuthProvider>
+      <FinanceProvider>
+        <Outlet />
+        <Toaster />
+      </FinanceProvider>
     </QueryClientProvider>
   );
 }

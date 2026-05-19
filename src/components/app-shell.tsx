@@ -9,7 +9,7 @@ import {
   Users,
   LogOut,
 } from "lucide-react";
-import { useAuth } from "@/lib/auth-store";
+import { useCurrentUser, logout } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 
 const baseNav = [
@@ -25,15 +25,16 @@ const adminNav = [{ to: "/users", label: "Usuários", icon: Users }] as const;
 export function AppShell({ children }: { children: React.ReactNode }) {
   const loc = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const user = useCurrentUser();
 
   useEffect(() => {
     if (user === null) navigate({ to: "/login" });
   }, [user, navigate]);
 
-  if (!user) return null;
+  if (user === undefined) return null;
+  if (user === null) return null;
 
-  const nav = user.role === "admin" ? [...baseNav, ...adminNav] : baseNav;
+  const nav = user.admin ? [...baseNav, ...adminNav] : baseNav;
 
   const initials = user.name
     .split(" ")
@@ -62,8 +63,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   key={to}
                   to={to}
                   className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${active
-                      ? "bg-primary text-primary-foreground shadow-[var(--shadow-soft)]"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent"
+                    ? "bg-primary text-primary-foreground shadow-[var(--shadow-soft)]"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent"
                     }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -81,7 +82,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{user.name}</p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {user.role === "admin" ? "Administrador" : "Usuário"}
+                  {user.admin ? "Administrador" : "Usuário"}
                 </p>
               </div>
               <Button
@@ -126,8 +127,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   key={to}
                   to={to}
                   className={`flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium ${active
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-secondary-foreground"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground"
                     }`}
                 >
                   <Icon className="h-3.5 w-3.5" />

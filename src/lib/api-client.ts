@@ -1,9 +1,11 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL;
+const rawApiUrl = import.meta.env.VITE_API_URL || '';
+const trimmed = rawApiUrl.replace(/\/$/, '');
+const API_BASE = trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
 
 const apiClient = axios.create({
-  baseURL: API_URL,
+  baseURL: API_BASE,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -23,9 +25,17 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Redirecionar para login se não autenticado
+      // Emit an event instead of forcing navigation so HMR/react-refresh
+      // doesn't get interrupted and we avoid full-page reload loops.
       localStorage.removeItem('authToken');
-      window.location.href = '/login';
+      if (typeof window !== 'undefined') {
+        try {
+          window.dispatchEvent(new CustomEvent('auth:logout'));
+        } catch (e) {
+          // fallback: gently replace location without adding history entry
+          window.location.replace('/login');
+        }
+      }
     }
     return Promise.reject(error);
   }

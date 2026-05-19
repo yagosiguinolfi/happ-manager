@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { BentoCard } from "@/components/bento-card";
-import { useAuth, type UserRole } from "@/lib/auth-store";
+import { useCurrentUser, useUsers, createUser, updateUser, removeUser, resetPassword } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,7 +36,8 @@ export const Route = createFileRoute("/users")({
 });
 
 function UsersPage() {
-  const { user, users, createUser, updateUser, removeUser, resetPassword } = useAuth();
+  const user = useCurrentUser();
+  const users = useUsers();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [pwOpenFor, setPwOpenFor] = useState<string | null>(null);
@@ -46,34 +47,35 @@ function UsersPage() {
     name: "",
     email: "",
     password: "",
-    role: "user" as UserRole,
+    admin: false,
   });
 
   useEffect(() => {
     if (user === null) navigate({ to: "/login" });
-    else if (user.role !== "admin") navigate({ to: "/" });
+    else if (user !== undefined && !user.admin) navigate({ to: "/" });
   }, [user, navigate]);
 
-  if (!user || user.role !== "admin") return null;
+  if (user === undefined) return null;
+  if (!user || !user.admin) return null;
 
-  const onCreate = (e: React.FormEvent) => {
+  const onCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      createUser({
+      await createUser({
         name: form.name.trim(),
         email: form.email.trim(),
         password: form.password,
-        role: form.role,
+        admin: form.admin,
       });
       toast.success("Usuário criado");
       setOpen(false);
-      setForm({ name: "", email: "", password: "", role: "user" });
+      setForm({ name: "", email: "", password: "", admin: false });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro");
     }
   };
 
-  const totalAdmins = users.filter((u) => u.role === "admin").length;
+  const totalAdmins = users.filter((u) => u.admin).length;
   const totalActive = users.filter((u) => u.active).length;
 
   return (
@@ -111,11 +113,11 @@ function UsersPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Perfil</Label>
-                  <Select value={form.role} onValueChange={(v: UserRole) => setForm({ ...form, role: v })}>
+                  <Select value={form.admin ? "true" : "false"} onValueChange={(v: string) => setForm({ ...form, admin: v === "true" })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="user">Usuário</SelectItem>
-                      <SelectItem value="admin">Administrador</SelectItem>
+                      <SelectItem value="false">Usuário</SelectItem>
+                      <SelectItem value="true">Administrador</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -163,17 +165,21 @@ function UsersPage() {
                       <td className="px-5 py-3 text-muted-foreground">{u.email}</td>
                       <td className="px-5 py-3">
                         <Select
-                          value={u.role}
-                          onValueChange={(v: UserRole) => {
-                            updateUser(u.id, { role: v });
-                            toast.success("Perfil atualizado");
+                          value={u.admin ? "true" : "false"}
+                          onValueChange={async (v: string) => {
+                            try {
+                              await updateUser(u.id, { admin: v === "true" });
+                              toast.success("Perfil atualizado");
+                            } catch (err) {
+                              toast.error(err instanceof Error ? err.message : "Erro");
+                            }
                           }}
                           disabled={isSelf}
                         >
                           <SelectTrigger className="h-8 w-36"><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="user">Usuário</SelectItem>
-                            <SelectItem value="admin">Administrador</SelectItem>
+                            <SelectItem value="false">Usuário</SelectItem>
+                            <SelectItem value="true">Administrador</SelectItem>
                           </SelectContent>
                         </Select>
                       </td>
@@ -189,9 +195,13 @@ function UsersPage() {
                             size="icon"
                             title={u.active ? "Desativar" : "Ativar"}
                             disabled={isSelf}
-                            onClick={() => {
-                              updateUser(u.id, { active: !u.active });
-                              toast.success(u.active ? "Usuário desativado" : "Usuário ativado");
+                            onClick={async () => {
+                              try {
+                                await updateUser(u.id, { active: !u.active });
+                                toast.success(u.active ? "Usuário desativado" : "Usuário ativado");
+                              } catch (err) {
+                                toast.error(err instanceof Error ? err.message : "Erro");
+                              }
                             }}
                           >
                             {u.active ? <ShieldOff className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
@@ -212,12 +222,16 @@ function UsersPage() {
                               </div>
                               <DialogFooter>
                                 <Button
-                                  onClick={() => {
+                                  onClick={async () => {
                                     if (newPw.length < 6) return toast.error("Mínimo 6 caracteres");
-                                    resetPassword(u.id, newPw);
-                                    toast.success("Senha redefinida");
-                                    setPwOpenFor(null);
-                                    setNewPw("");
+                                    try {
+                                      await resetPassword(u.id, newPw);
+                                      toast.success("Senha redefinida");
+                                      setPwOpenFor(null);
+                                      setNewPw("");
+                                    } catch (err) {
+                                      toast.error(err instanceof Error ? err.message : "Erro");
+                                    }
                                   }}
                                 >
                                   Salvar
@@ -230,10 +244,14 @@ function UsersPage() {
                             size="icon"
                             title="Remover"
                             disabled={isSelf}
-                            onClick={() => {
+                            onClick={async () => {
                               if (confirm(`Remover ${u.name}?`)) {
-                                removeUser(u.id);
-                                toast.success("Usuário removido");
+                                try {
+                                  await removeUser(u.id);
+                                  toast.success("Usuário removido");
+                                } catch (err) {
+                                  toast.error(err instanceof Error ? err.message : "Erro");
+                                }
                               }
                             }}
                           >

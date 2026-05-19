@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useAuth } from "@/lib/auth-store";
+import { login, useCurrentUser } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +18,7 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
-  const { user, login } = useAuth();
+  const user = useCurrentUser();
   const navigate = useNavigate();
   const [email, setEmail] = useState("admin@demo.com");
   const [password, setPassword] = useState("admin123");
